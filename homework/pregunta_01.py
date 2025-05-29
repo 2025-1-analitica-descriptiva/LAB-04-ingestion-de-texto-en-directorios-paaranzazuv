@@ -4,56 +4,65 @@
 """
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
-import zipfile
 import os
-
-def pregunta_01():
-
-    import os
+import zipfile
 import pandas as pd
 
-carpetas     = ['train', 'test']
-sentimientos = ['negative', 'positive', 'neutral']
-base_dir     = os.path.join('files', 'input')
+def pregunta_01():
+    """
+    Descomprime 'files/input.zip' si existe y no se ha extraido.
+    Luego recorre los directorios 'train' y 'test' y sus subcarpetas
+    de sentimiento ('negative','positive','neutral'), lee todos los
+    archivos .txt, y genera dos CSV: 'train_dataset.csv' y 'test_dataset.csv'
+    en 'files/output', con columnas 'phrase' y 'target'.
+    """
+    # Descomprimir input.zip si es necesario
+    zip_path = os.path.join('files', 'input.zip')
+    extract_folder = os.path.join('files', 'input')
+    if os.path.exists(zip_path) and not os.path.isdir(extract_folder):
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            z.extractall('files')
 
-all_data = []
+    carpetas = ['train', 'test']
+    sentimientos = ['negative', 'positive', 'neutral']
+    base_dir = os.path.join('files', 'input')
+    all_data = []
 
-# Recorremos carpetas y sentimientos
-for carpeta in carpetas:
-    for sentimiento in sentimientos:
-        path = os.path.join(base_dir, carpeta, sentimiento)
-        if not os.path.isdir(path):
-            continue
+    for carpeta in carpetas:
+        for sentimiento in sentimientos:
+            folder_path = os.path.join(base_dir, carpeta, sentimiento)
+            if not os.path.isdir(folder_path):
+                continue
+            for filename in os.listdir(folder_path):
+                if filename.lower().endswith('.txt'):
+                    file_path = os.path.join(folder_path, filename)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        phrase = f.read().strip()
+                    all_data.append({
+                        'phrase': phrase,
+                        'target': sentimiento,
+                        'subset': carpeta
+                    })
 
-        for nombre in os.listdir(path):
-            if nombre.lower().endswith('.txt'):
-                file_path = os.path.join(path, nombre)
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    phrase = f.read().strip()
-                all_data.append({
-                    'phrase':    phrase,
-                    'target': sentimiento,
-                    'subset':    carpeta,
-                                })
-
-    # Creamos un único DataFrame
     df = pd.DataFrame(all_data)
 
-    # Separamos en train y test
-    train_df = df[df['subset'] == 'train'].reset_index(drop=True)
-    test_df  = df[df['subset'] == 'test'].reset_index(drop=True)
-    train_df.drop(columns='subset', inplace=True)
-    test_df.drop(columns='subset', inplace=True)
-    # Guardamos cada uno en su CSV
-    os.makedirs('files/output', exist_ok=True)
-    train_df.to_csv('files/output/train_dataset.csv', index=False)
-    test_df.to_csv('files/output/test_dataset.csv',  index=False)
+    # Separar y eliminar columna 'subset'
+    train_df = df[df['subset'] == 'train']
+    test_df = df[df['subset'] == 'test']
 
-    print("Guardados: train_dataset.csv  y  test_dataset.csv")
+    # Crear carpeta output
+    output_folder = os.path.join('files', 'output')
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Guardar CSVs
+    train_df.to_csv(os.path.join(output_folder, 'train_dataset.csv'), index=False)
+    test_df.to_csv(os.path.join(output_folder, 'test_dataset.csv'), index=False)
+
+    return df
 
     
 
-
+print(pregunta_01())
 
 """
     La información requerida para este laboratio esta almacenada en el
@@ -100,7 +109,7 @@ for carpeta in carpetas:
 
     Estos archivos deben tener la siguiente estructura:
 
-    * phrase: Texto de la frase. hay una frase por cada arcghivo de texto.
+    * phrase: Texto de la frase. hay una frase por cada archivo de texto.
     * sentiment: Sentimiento de la frase. Puede ser "positive", "negative"
       o "neutral". Este corresponde al nombre del directorio donde se
       encuentra ubicado el archivo.
