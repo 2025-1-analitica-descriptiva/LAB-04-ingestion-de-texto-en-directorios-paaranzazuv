@@ -4,10 +4,58 @@
 """
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
-
+import zipfile
+import os
 
 def pregunta_01():
-    """
+
+    import os
+import pandas as pd
+
+carpetas     = ['train', 'test']
+sentimientos = ['negative', 'positive', 'neutral']
+base_dir     = os.path.join('files', 'input')
+
+all_data = []
+
+# Recorremos carpetas y sentimientos
+for carpeta in carpetas:
+    for sentimiento in sentimientos:
+        path = os.path.join(base_dir, carpeta, sentimiento)
+        if not os.path.isdir(path):
+            continue
+
+        for nombre in os.listdir(path):
+            if nombre.lower().endswith('.txt'):
+                file_path = os.path.join(path, nombre)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    phrase = f.read().strip()
+                all_data.append({
+                    'phrase':    phrase,
+                    'target': sentimiento,
+                    'subset':    carpeta
+                                })
+
+    # Creamos un único DataFrame
+    df = pd.DataFrame(all_data)
+
+    # Separamos en train y test
+    train_df = df[df['subset'] == 'train'].reset_index(drop=True)
+    test_df  = df[df['subset'] == 'test'].reset_index(drop=True)
+    train_df.drop(columns='subset', inplace=True)
+    test_df.drop(columns='subset', inplace=True)
+    # Guardamos cada uno en su CSV
+    os.makedirs('files/output', exist_ok=True)
+    train_df.to_csv('files/output/train_dataset.csv', index=False)
+    test_df.to_csv('files/output/test_dataset.csv',  index=False)
+
+    print("Guardados: train_dataset.csv  y  test_dataset.csv")
+
+    
+
+print(pregunta_01())
+
+"""
     La información requerida para este laboratio esta almacenada en el
     archivo "files/input.zip" ubicado en la carpeta raíz.
     Descomprima este archivo.
