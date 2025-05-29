@@ -33,7 +33,7 @@ for carpeta in carpetas:
                 all_data.append({
                     'phrase':    phrase,
                     'target': sentimiento,
-                    'subset':    carpeta
+                    'subset':    carpeta,
                                 })
 
     # Creamos un único DataFrame
@@ -53,7 +53,7 @@ for carpeta in carpetas:
 
     
 
-print(pregunta_01())
+
 
 """
     La información requerida para este laboratio esta almacenada en el
